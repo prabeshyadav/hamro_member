@@ -1,44 +1,46 @@
 # accounts/views.py
 
 import random
-from django.contrib import messages
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib import messages
 from .forms import CustomUserCreationForm
+from .emails import send_otp_via_email
+
+# accounts/views.py
+import random
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+
+# ...
 
 def register_user(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            # Generate and send OTP
-            otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
             email = form.cleaned_data['email']
-
-            subject = 'Your OTP Code'
-            message = f'Your OTP code is: {otp}'
-            from_email = 'youremail@gmail.com'  # Replace with your email
-            recipient_list = [email]
-
-            try:
-                send_mail(subject, message, from_email, recipient_list)
-                request.session['otp'] = otp  # Store the OTP in the session
-                request.session['user_data'] = form.cleaned_data  # Store the user registration data
+            
+            # Generate and send OTP
+            otp = random.randint(1000, 9999)
+            if send_otp_via_email(email, otp):
+                # OTP sent successfully
+                # Store OTP and user data in session
+                request.session['otp'] = otp
+                request.session['user_data'] = form.cleaned_data
                 messages.success(request, 'OTP sent successfully!')
                 return redirect('verify_otp')
-            except Exception as e:
-                messages.error(request, f'Failed to send OTP: {e}')
+            else:
+                # Failed to send OTP
+                messages.error(request, 'Failed to send OTP. Please try again later.')
+        else:
+            messages.error(request, 'Registration failed. Please correct the errors below.')
+
     else:
         form = CustomUserCreationForm()
+    
     return render(request, 'registration/register.html', {'form': form})
 
-
-
-
-
-
-
-# accounts/views.py
+# ...
 
 def verify_otp(request):
     if request.method == 'POST':
@@ -61,6 +63,8 @@ def verify_otp(request):
             messages.error(request, 'Invalid OTP. Please try again.')
 
     return render(request, 'registration/verify_otp.html')
+
+
 
 
 
