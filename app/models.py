@@ -2,6 +2,7 @@ from django.db import models
 from .manager import CustomUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from account import commons
+from tinymce.models import HTMLField
 
 # Create your models here.
 
@@ -9,9 +10,9 @@ from account import commons
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    is_verified=models.BooleanField(default=True)
+    is_email_verified=models.BooleanField(default=True)
     otp=models.CharField(max_length=200,null=True,blank=True)
-    is_verified=models.BooleanField(default=True)
+    is_otp_verified=models.BooleanField(default=True)
     organization_name = models.CharField(max_length=255,null=True,blank=True)
     first_name = models.CharField(max_length=30,null=True,blank=True)
     last_name = models.CharField(max_length=30,null=True,blank=True)
@@ -30,3 +31,44 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+
+
+class Membership(models.Model):
+    membership_name=models.CharField(max_length=225)
+    first_time_charge=models.IntegerField()
+    recurring_charge=models.IntegerField()
+    renewal_period=models.IntegerField()
+    amount=models.IntegerField()
+    
+class Manager(models.Model):
+    first_name=models.CharField(max_length=225)
+    last_name=models.CharField(max_length=225)
+    email=models.CharField(max_length=225)
+    contact=models.CharField(max_length=225)
+    
+class Member(models.Model):
+    first_name=models.CharField(max_length=225)
+    last_name=models.CharField(max_length=225)
+    email=models.EmailField()
+    contact=models.CharField(max_length=225)
+    old_member=models.BooleanField()
+    member_id=models.CharField(max_length=225)
+    
+class Events(models.Model):
+    event_name=models.CharField(max_length=225)
+    venue=models.CharField(max_length=225)
+    start_date=models.DateTimeField()
+    end_date=models.DateTimeField()
+    image=models.ImageField()
+    short_description=HTMLField()
+    long_description=HTMLField()
+    #registration
+    #start_date
+    #end_date
+
+
+class Registration(models.Model):
+    allow_registration=models.BooleanField()
+    available_from=models.DateTimeField()
+    available_to=models.DateTimeField()
+    Events=models.ForeignKey(Events, on_delete=models.CASCADE)
